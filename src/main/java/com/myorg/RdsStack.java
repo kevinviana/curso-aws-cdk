@@ -42,7 +42,7 @@ public class RdsStack extends Stack {
 		iSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(3306), "Allows RDS access from anywhere in AWS");
 
 		IInstanceEngine engine = DatabaseInstanceEngine.mysql(MySqlInstanceEngineProps.builder()
-				.version(MysqlEngineVersion.VER_5_7)
+				.version(MysqlEngineVersion.VER_8_0_30)
 				.build());
 
 		DatabaseInstance databaseInstance = DatabaseInstance.Builder

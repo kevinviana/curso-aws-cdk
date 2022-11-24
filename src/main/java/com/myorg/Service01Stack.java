@@ -3,6 +3,7 @@ package com.myorg;
 import java.util.HashMap;
 import java.util.Map;
 
+import software.amazon.awscdk.Duration;
 import software.amazon.awscdk.Fn;
 import software.amazon.awscdk.RemovalPolicy;
 import software.amazon.awscdk.Stack;
@@ -17,19 +18,20 @@ import software.amazon.awscdk.services.ecs.ScalableTaskCount;
 import software.amazon.awscdk.services.ecs.patterns.ApplicationLoadBalancedFargateService;
 import software.amazon.awscdk.services.ecs.patterns.ApplicationLoadBalancedTaskImageOptions;
 import software.amazon.awscdk.services.elasticloadbalancingv2.HealthCheck;
+import software.amazon.awscdk.services.events.targets.SnsTopic;
 import software.amazon.awscdk.services.logs.LogGroup;
 import software.constructs.Construct;
 
 public class Service01Stack extends Stack {
-        public Service01Stack(final Construct scope, final String id, Cluster cluster) {
-                this(scope, id, null, cluster);
+        public Service01Stack(final Construct scope, final String id, Cluster cluster, SnsTopic productEventsTopic) {
+                this(scope, id, null, cluster, productEventsTopic);
         }
 
-        public Service01Stack(final Construct scope, final String id, final StackProps props, Cluster cluster) {
+        public Service01Stack(final Construct scope, final String id, final StackProps props, Cluster cluster, SnsTopic productEventsTopic) {
                 super(scope, id, props);
 
                 Map<String, String> environment = new HashMap<>();
-                environment.put("SPRING_DATASOURCE", "jdbc:mysql://"
+                environment.put("SPRING_DATASOURCE_URL", "jdbc:mysql://"
                                 + Fn.importValue("rds-endpoint")
                                 + ":3306/aws-project01-db?createDatabaseIfNotExist=true&serverTimezone=UTC");
                 environment.put("SPRING_DATASOURCE_USERNAME", "admin");
@@ -60,6 +62,7 @@ public class Service01Stack extends Stack {
                                                                 .environment(environment)
                                                                 .build())
                                 .publicLoadBalancer(true)
+                                .healthCheckGracePeriod(Duration.seconds(90))
                                 .assignPublicIp(true)
                                 .build();
 
@@ -67,6 +70,7 @@ public class Service01Stack extends Stack {
                                 .path("/actuator/health")
                                 .port("8080")
                                 .healthyHttpCodes("200")
+                                .healthyThresholdCount(3)
                                 .build());
 
                 ScalableTaskCount scalableTaskCount = service01
@@ -77,7 +81,9 @@ public class Service01Stack extends Stack {
                                                 .build());
 
                 scalableTaskCount.scaleOnCpuUtilization("Service01AutoScaling", CpuUtilizationScalingProps.builder()
-                                .targetUtilizationPercent(50)
+                                .targetUtilizationPercent(70)
                                 .build());
+
+                productEventsTopic.getTopic().grantPublish(service01.getTaskDefinition().getTaskRole());
         }
 }

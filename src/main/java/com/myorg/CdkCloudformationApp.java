@@ -1,7 +1,6 @@
 package com.myorg;
 
 import software.amazon.awscdk.App;
-import software.amazon.awscdk.services.ses.actions.Sns;
 
 public class CdkCloudformationApp {
 

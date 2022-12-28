@@ -17,7 +17,8 @@ public class CdkCloudformationApp {
 
         SnsStack snsStack = new SnsStack(app, "Sns");
 
-        Service01Stack service01Stack = new Service01Stack(app, "Service01", clusterStack.getCluster(), snsStack.getProductEventsTopic());
+        Service01Stack service01Stack = new Service01Stack(app, "Service01", clusterStack.getCluster(),
+                snsStack.getProductEventsTopic());
         service01Stack.addDependency(clusterStack);
         service01Stack.addDependency(rdsStack);
         service01Stack.addDependency(snsStack);

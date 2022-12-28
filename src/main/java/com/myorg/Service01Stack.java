@@ -64,7 +64,7 @@ public class Service01Stack extends Stack {
                                                                 .environment(environment)
                                                                 .build())
                                 .publicLoadBalancer(true)
-                                .healthCheckGracePeriod(Duration.seconds(90))
+                                .healthCheckGracePeriod(Duration.seconds(180))
                                 .assignPublicIp(true)
                                 .build();
 
